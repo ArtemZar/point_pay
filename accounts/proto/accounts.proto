@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "./proto";
+
+import "google/protobuf/Empty.proto";
+
+service Accounts  {
+  rpc Test (Request) returns (Response) {}
+  rpc CreateAccount (NewUserRequest) returns (AccountResponse) {}
+  rpc GetAccounts (google.protobuf.Empty) returns (stream AccountResponse) {}
+  rpc GenerateAddress (NewWalletRequest) returns (AccountResponse) {}
+  rpc Deposit (ChangeBalanceRequest) returns (AccountResponse) {}
+  rpc Withdrawal (ChangeBalanceRequest) returns (AccountResponse) {}
+}
+
+message Request {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message Response {
+  int32 z = 1;
+}
+
+message  NewUserRequest {
+string email = 1;
+}
+
+message NewWalletRequest {
+  string id = 1;
+}
+
+message ChangeBalanceRequest {
+  string id = 1;
+  uint64 wallet_id = 2;
+  string  change = 3;
+}
+
+
+message AccountResponse {
+  string id = 1;
+  uint64 wallet_id = 2;
+  string balance = 3;
+}
