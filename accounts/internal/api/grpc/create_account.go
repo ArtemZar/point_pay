@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	pb "accounts/internal/api/gen/proto"
+	pb "accounts/internal/api/proto"
 	"accounts/internal/db/model"
 	"accounts/internal/db/mongodb"
 	"accounts/internal/utils"
@@ -9,10 +9,6 @@ import (
 )
 
 func (s *GRPCServer) CreateAccount(ctx context.Context, in *pb.NewUserRequest) (*pb.AccountResponse, error) {
-	monogodbClient, err := mongodb.NewClient(ctx, "localhost", "27017", "", "", "account-service", "")
-	if err != nil {
-		utils.Logger.Fatal(err)
-	}
 
 	newAccount := model.Account{
 		ID:      "",
@@ -20,7 +16,7 @@ func (s *GRPCServer) CreateAccount(ctx context.Context, in *pb.NewUserRequest) (
 		Balance: "0",
 	}
 
-	storage := mongodb.NewStorage(monogodbClient, "accounts", utils.Logger)
+	storage := mongodb.NewStorage(s.MongoDBClient, "accounts", utils.Logger)
 	accountID, _ := storage.Create(ctx, newAccount)
 
 	return &pb.AccountResponse{Id: accountID}, nil

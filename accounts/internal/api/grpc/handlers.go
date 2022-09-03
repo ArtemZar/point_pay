@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	pb "accounts/internal/api/gen/proto"
+	pb "accounts/internal/api/proto"
 )
 
 type handlers struct {

@@ -69,8 +69,30 @@ func (d *db) Update(ctx context.Context, account model.Account) error {
 	if result.MatchedCount == 0 {
 		return fmt.Errorf("not found")
 	}
-	// TODO return New Balance
+
 	return nil
+}
+
+func (d *db) Find(ctx context.Context) (a []model.Account, err error) {
+	cur, err := d.collection.Find(ctx, primitive.D{{}})
+	if err != nil {
+		utils.Logger.Error(err)
+	}
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		data := &model.Account{}
+		err := cur.Decode(data)
+		if err != nil {
+			utils.Logger.Error(err)
+		}
+		a = append(a, *data)
+
+	}
+	if err := cur.Err(); err != nil {
+		utils.Logger.Error(err)
+	}
+	return a, nil
 }
 
 func (d *db) GetOne(ctx context.Context, account model.Account) (a model.Account, err error) {

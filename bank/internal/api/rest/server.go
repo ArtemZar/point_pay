@@ -1,39 +1,29 @@
 package rest
 
 import (
-	"bank/internal/api/grpc"
+	"bank/internal/account"
 	"bank/internal/config"
 	"bank/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
-type RESTServer struct {
+type Server struct {
 	config *config.ServerConfig
 	router *gin.Engine
 }
 
-func NewServer(config *config.ServerConfig) *RESTServer {
-	return &RESTServer{
+func NewServer(config *config.ServerConfig) *Server {
+	return &Server{
 		config: config,
-		router: gin.Default(),
+		router: gin.New(),
 	}
 }
 
-func (s *RESTServer) Start() error {
+func (s *Server) Start() error {
+	handler := account.NewHandler()
+	handler.Register(s.router)
 
-	s.configureRouter()
-	utils.Logger.Info("The RESTServer is starting")
+	utils.Logger.Info("The Server is starting")
 
 	return s.router.Run(s.config.BindAddr)
-}
-
-func (s *RESTServer) configureRouter() {
-	client := grpc.NewGRPCClient()
-	s.router.GET("/test", s.handleTest(client))
-	s.router.POST("/create_account", s.handleCreateAccount(client))
-	s.router.GET("/get_accounts", s.handleGetAccounts())
-	s.router.POST("/generate_address", s.handleGenerateAddress(client))
-	s.router.POST("/deposit", s.handleDeposit(client))
-	s.router.POST("/withdrawl", s.handleWithdrawl(client))
-
 }

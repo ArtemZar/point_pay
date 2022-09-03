@@ -19,11 +19,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AccountsClient is the client API for accounts service.
+// AccountsClient is the client API for Accounts service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountsClient interface {
-	Test(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 	CreateAccount(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*AccountResponse, error)
 	GetAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Accounts_GetAccountsClient, error)
 	GenerateAddress(ctx context.Context, in *NewWalletRequest, opts ...grpc.CallOption) (*AccountResponse, error)
@@ -39,18 +38,9 @@ func NewAccountsClient(cc grpc.ClientConnInterface) AccountsClient {
 	return &accountsClient{cc}
 }
 
-func (c *accountsClient) Test(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/api.accounts/Test", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *accountsClient) CreateAccount(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.accounts/CreateAccount", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Accounts/CreateAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +48,7 @@ func (c *accountsClient) CreateAccount(ctx context.Context, in *NewUserRequest, 
 }
 
 func (c *accountsClient) GetAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Accounts_GetAccountsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Accounts_ServiceDesc.Streams[0], "/api.accounts/GetAccounts", opts...)
+	stream, err := c.cc.NewStream(ctx, &Accounts_ServiceDesc.Streams[0], "/api.Accounts/GetAccounts", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +81,7 @@ func (x *accountsGetAccountsClient) Recv() (*AccountResponse, error) {
 
 func (c *accountsClient) GenerateAddress(ctx context.Context, in *NewWalletRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.accounts/GenerateAddress", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Accounts/GenerateAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +90,7 @@ func (c *accountsClient) GenerateAddress(ctx context.Context, in *NewWalletReque
 
 func (c *accountsClient) Deposit(ctx context.Context, in *ChangeBalanceRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.accounts/Deposit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Accounts/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,18 +99,17 @@ func (c *accountsClient) Deposit(ctx context.Context, in *ChangeBalanceRequest, 
 
 func (c *accountsClient) Withdrawal(ctx context.Context, in *ChangeBalanceRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.accounts/Withdrawal", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.Accounts/Withdrawal", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AccountsServer is the server API for accounts service.
+// AccountsServer is the server API for Accounts service.
 // All implementations must embed UnimplementedAccountsServer
 // for forward compatibility
 type AccountsServer interface {
-	Test(context.Context, *Request) (*Response, error)
 	CreateAccount(context.Context, *NewUserRequest) (*AccountResponse, error)
 	GetAccounts(*emptypb.Empty, Accounts_GetAccountsServer) error
 	GenerateAddress(context.Context, *NewWalletRequest) (*AccountResponse, error)
@@ -133,9 +122,6 @@ type AccountsServer interface {
 type UnimplementedAccountsServer struct {
 }
 
-func (UnimplementedAccountsServer) Test(context.Context, *Request) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Test not implemented")
-}
 func (UnimplementedAccountsServer) CreateAccount(context.Context, *NewUserRequest) (*AccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
@@ -164,24 +150,6 @@ func RegisterAccountsServer(s grpc.ServiceRegistrar, srv AccountsServer) {
 	s.RegisterService(&Accounts_ServiceDesc, srv)
 }
 
-func _Accounts_Test_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AccountsServer).Test(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.accounts/Test",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountsServer).Test(ctx, req.(*Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Accounts_CreateAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(NewUserRequest)
 	if err := dec(in); err != nil {
@@ -192,7 +160,7 @@ func _Accounts_CreateAccount_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.accounts/CreateAccount",
+		FullMethod: "/api.Accounts/CreateAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).CreateAccount(ctx, req.(*NewUserRequest))
@@ -231,7 +199,7 @@ func _Accounts_GenerateAddress_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.accounts/GenerateAddress",
+		FullMethod: "/api.Accounts/GenerateAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).GenerateAddress(ctx, req.(*NewWalletRequest))
@@ -249,7 +217,7 @@ func _Accounts_Deposit_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.accounts/Deposit",
+		FullMethod: "/api.Accounts/Deposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).Deposit(ctx, req.(*ChangeBalanceRequest))
@@ -267,7 +235,7 @@ func _Accounts_Withdrawal_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.accounts/Withdrawal",
+		FullMethod: "/api.Accounts/Withdrawal",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).Withdrawal(ctx, req.(*ChangeBalanceRequest))
@@ -275,17 +243,13 @@ func _Accounts_Withdrawal_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-// Accounts_ServiceDesc is the grpc.ServiceDesc for accounts service.
+// Accounts_ServiceDesc is the grpc.ServiceDesc for Accounts service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Accounts_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.accounts",
+	ServiceName: "api.Accounts",
 	HandlerType: (*AccountsServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Test",
-			Handler:    _Accounts_Test_Handler,
-		},
 		{
 			MethodName: "CreateAccount",
 			Handler:    _Accounts_CreateAccount_Handler,

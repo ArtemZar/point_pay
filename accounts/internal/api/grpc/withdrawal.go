@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	pb "accounts/internal/api/gen/proto"
+	pb "accounts/internal/api/proto"
 	"accounts/internal/db/model"
 	"accounts/internal/db/mongodb"
 	"accounts/internal/service"
@@ -10,12 +10,8 @@ import (
 )
 
 func (s *GRPCServer) Withdrawal(ctx context.Context, in *pb.ChangeBalanceRequest) (*pb.AccountResponse, error) {
-	monogodbClient, err := mongodb.NewClient(ctx, "localhost", "27017", "", "", "account-service", "")
-	if err != nil {
-		utils.Logger.Fatal(err)
-	}
 
-	storage := mongodb.NewStorage(monogodbClient, "accounts", utils.Logger)
+	storage := mongodb.NewStorage(s.MongoDBClient, "accounts", utils.Logger)
 
 	sourceAcc, _ := storage.GetOne(ctx, model.Account{ID: in.Id})
 
@@ -26,9 +22,9 @@ func (s *GRPCServer) Withdrawal(ctx context.Context, in *pb.ChangeBalanceRequest
 		Balance: newBalance,
 	}
 
-	err = storage.Update(ctx, updateBalance)
+	err := storage.Update(ctx, updateBalance)
 	if err != nil {
-		//TODO return error
+
 		utils.Logger.Info("update error ", err)
 	}
 

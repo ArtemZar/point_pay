@@ -6,7 +6,3 @@ type Account struct {
 	WalletID uint64 `json:"wallet_id" bson:"wallet_id,omitempty"`
 	Balance  string `json:"balance" bson:"balance,omitempty"`
 }
-
-type CreateUserDTO struct {
-	Email string `json:"email"`
-}

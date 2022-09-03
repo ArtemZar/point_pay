@@ -12,6 +12,7 @@ func InitializeLogger() error {
 		return err
 	}
 
+	//nolint:errcheck // ok
 	defer logger.Sync() // flushes buffer, if any
 	Logger = logger.Sugar()
 

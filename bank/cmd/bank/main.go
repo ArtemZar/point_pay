@@ -17,16 +17,28 @@ func main() {
 	}
 
 	ctx, finish := context.WithCancel(context.Background())
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func(ctx context.Context) {
 		s := rest.NewServer(config.NewCofig())
 		if err := s.Start(); err != nil {
-			log.Fatal(err)
+			utils.Logger.Fatal(err)
 		}
 	}(ctx)
 
 	<-sigCh
 	finish()
 }
+
+//
+//func run(router *gin.Engine) {
+//
+//	err:= router.Run(":8080")
+//	if err != nil {
+//		//
+//	}
+//
+//	server := &http.Server{Handler: router}
+//}
