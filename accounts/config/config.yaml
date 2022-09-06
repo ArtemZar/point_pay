@@ -1,0 +1,11 @@
+grpc_server:
+  network: "tcp"
+  addr: "localhost:8081"
+
+database:
+  host: "localhost"
+  port: "27017"
+  username: ""
+  password: ""
+  database: "account-service"
+  authDB: ""
