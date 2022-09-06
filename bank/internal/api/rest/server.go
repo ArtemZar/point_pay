@@ -8,11 +8,11 @@ import (
 )
 
 type Server struct {
-	config *config.ServerConfig
+	config *config.Config
 	router *gin.Engine
 }
 
-func NewServer(config *config.ServerConfig) *Server {
+func NewServer(config *config.Config) *Server {
 	return &Server{
 		config: config,
 		router: gin.New(),
@@ -20,10 +20,10 @@ func NewServer(config *config.ServerConfig) *Server {
 }
 
 func (s *Server) Start() error {
-	handler := account.NewHandler()
+	handler := account.NewHandler(s.config)
 	handler.Register(s.router)
 
 	utils.Logger.Info("The Server is starting")
 
-	return s.router.Run(s.config.BindAddr)
+	return s.router.Run(s.config.SrvConf.BindAddr)
 }

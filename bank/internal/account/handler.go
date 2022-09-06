@@ -3,6 +3,7 @@ package account
 import (
 	"bank/internal/api/grpc"
 	pb "bank/internal/api/proto"
+	"bank/internal/config"
 	"bank/internal/ifaces"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -16,9 +17,9 @@ type handler struct {
 	GRPCClient *grpc.GRPCClient
 }
 
-func NewHandler() ifaces.Handler {
+func NewHandler(cfg *config.Config) ifaces.Handler {
 	return &handler{
-		GRPCClient: grpc.NewGRPCClient(),
+		GRPCClient: grpc.NewGRPCClient(cfg),
 	}
 }
 
