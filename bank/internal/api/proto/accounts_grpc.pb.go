@@ -40,7 +40,7 @@ func NewAccountsClient(cc grpc.ClientConnInterface) AccountsClient {
 
 func (c *accountsClient) CreateAccount(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.Accounts/CreateAccount", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/transport.Accounts/CreateAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *accountsClient) CreateAccount(ctx context.Context, in *NewUserRequest, 
 }
 
 func (c *accountsClient) GetAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Accounts_GetAccountsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Accounts_ServiceDesc.Streams[0], "/api.Accounts/GetAccounts", opts...)
+	stream, err := c.cc.NewStream(ctx, &Accounts_ServiceDesc.Streams[0], "/transport.Accounts/GetAccounts", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (x *accountsGetAccountsClient) Recv() (*AccountResponse, error) {
 
 func (c *accountsClient) GenerateAddress(ctx context.Context, in *NewWalletRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.Accounts/GenerateAddress", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/transport.Accounts/GenerateAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (c *accountsClient) GenerateAddress(ctx context.Context, in *NewWalletReque
 
 func (c *accountsClient) Deposit(ctx context.Context, in *ChangeBalanceRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.Accounts/Deposit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/transport.Accounts/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (c *accountsClient) Deposit(ctx context.Context, in *ChangeBalanceRequest, 
 
 func (c *accountsClient) Withdrawal(ctx context.Context, in *ChangeBalanceRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/api.Accounts/Withdrawal", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/transport.Accounts/Withdrawal", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func _Accounts_CreateAccount_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Accounts/CreateAccount",
+		FullMethod: "/transport.Accounts/CreateAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).CreateAccount(ctx, req.(*NewUserRequest))
@@ -199,7 +199,7 @@ func _Accounts_GenerateAddress_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Accounts/GenerateAddress",
+		FullMethod: "/transport.Accounts/GenerateAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).GenerateAddress(ctx, req.(*NewWalletRequest))
@@ -217,7 +217,7 @@ func _Accounts_Deposit_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Accounts/Deposit",
+		FullMethod: "/transport.Accounts/Deposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).Deposit(ctx, req.(*ChangeBalanceRequest))
@@ -235,7 +235,7 @@ func _Accounts_Withdrawal_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Accounts/Withdrawal",
+		FullMethod: "/transport.Accounts/Withdrawal",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).Withdrawal(ctx, req.(*ChangeBalanceRequest))
@@ -247,7 +247,7 @@ func _Accounts_Withdrawal_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Accounts_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Accounts",
+	ServiceName: "transport.Accounts",
 	HandlerType: (*AccountsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

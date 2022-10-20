@@ -302,23 +302,23 @@ func file_accounts_proto_rawDescGZIP() []byte {
 
 var file_accounts_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_accounts_proto_goTypes = []interface{}{
-	(*NewUserRequest)(nil),       // 0: api.NewUserRequest
-	(*NewWalletRequest)(nil),     // 1: api.NewWalletRequest
-	(*ChangeBalanceRequest)(nil), // 2: api.ChangeBalanceRequest
-	(*AccountResponse)(nil),      // 3: api.AccountResponse
+	(*NewUserRequest)(nil),       // 0: transport.NewUserRequest
+	(*NewWalletRequest)(nil),     // 1: transport.NewWalletRequest
+	(*ChangeBalanceRequest)(nil), // 2: transport.ChangeBalanceRequest
+	(*AccountResponse)(nil),      // 3: transport.AccountResponse
 	(*emptypb.Empty)(nil),        // 4: google.protobuf.Empty
 }
 var file_accounts_proto_depIdxs = []int32{
-	0, // 0: api.Accounts.CreateAccount:input_type -> api.NewUserRequest
-	4, // 1: api.Accounts.GetAccounts:input_type -> google.protobuf.Empty
-	1, // 2: api.Accounts.GenerateAddress:input_type -> api.NewWalletRequest
-	2, // 3: api.Accounts.Deposit:input_type -> api.ChangeBalanceRequest
-	2, // 4: api.Accounts.Withdrawal:input_type -> api.ChangeBalanceRequest
-	3, // 5: api.Accounts.CreateAccount:output_type -> api.AccountResponse
-	3, // 6: api.Accounts.GetAccounts:output_type -> api.AccountResponse
-	3, // 7: api.Accounts.GenerateAddress:output_type -> api.AccountResponse
-	3, // 8: api.Accounts.Deposit:output_type -> api.AccountResponse
-	3, // 9: api.Accounts.Withdrawal:output_type -> api.AccountResponse
+	0, // 0: transport.Accounts.Create:input_type -> transport.NewUserRequest
+	4, // 1: transport.Accounts.GetAccounts:input_type -> google.protobuf.Empty
+	1, // 2: transport.Accounts.GenerateAddress:input_type -> transport.NewWalletRequest
+	2, // 3: transport.Accounts.Deposit:input_type -> transport.ChangeBalanceRequest
+	2, // 4: transport.Accounts.Withdrawal:input_type -> transport.ChangeBalanceRequest
+	3, // 5: transport.Accounts.Create:output_type -> transport.AccountResponse
+	3, // 6: transport.Accounts.GetAccounts:output_type -> transport.AccountResponse
+	3, // 7: transport.Accounts.GenerateAddress:output_type -> transport.AccountResponse
+	3, // 8: transport.Accounts.Deposit:output_type -> transport.AccountResponse
+	3, // 9: transport.Accounts.Withdrawal:output_type -> transport.AccountResponse
 	5, // [5:10] is the sub-list for method output_type
 	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

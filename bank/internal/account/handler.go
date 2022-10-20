@@ -6,6 +6,7 @@ import (
 	"bank/internal/config"
 	"bank/internal/ifaces"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
@@ -39,9 +40,12 @@ func (h *handler) CreateAccount(g *grpc.GRPCClient) gin.HandlerFunc {
 			Email: requestBody.Email,
 		})
 
-		c.JSON(http.StatusOK, gin.H{
-			"Account_ID": resp.Id,
-		})
+		fmt.Println(resp)
+		c.Writer.Write([]byte("hello"))
+
+		//c.JSON(http.StatusOK, gin.H{
+		//	"Account_ID": resp.Id,
+		//} )
 	}
 }
 

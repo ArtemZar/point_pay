@@ -1,24 +1,27 @@
-package mongodb
+package repository
 
 import (
-	"accounts/internal/db/model"
-	"accounts/internal/db/storage"
+	"accounts/internal/model"
 	"accounts/internal/utils"
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 )
 
-type db struct {
-	collection *mongo.Collection
-	logger     *zap.SugaredLogger
+type AccountRepository struct {
+	db *mongo.Collection
 }
 
-func (d *db) Create(ctx context.Context, account model.Account) (string, error) {
-	result, err := d.collection.InsertOne(ctx, account)
+func NewAccountRepository(db *mongo.Database, collection string) *AccountRepository {
+	return &AccountRepository{
+		db: db.Collection(collection),
+	}
+}
+
+func (ar *AccountRepository) Create(ctx context.Context, account model.Account) (string, error) {
+	result, err := ar.db.InsertOne(ctx, account)
 	if err != nil {
 		return "", err
 	}
@@ -29,7 +32,7 @@ func (d *db) Create(ctx context.Context, account model.Account) (string, error) 
 	return "", err
 }
 
-func (d *db) Update(ctx context.Context, account model.Account) error {
+func (ar *AccountRepository) Update(ctx context.Context, account model.Account) error {
 	objectId, err := primitive.ObjectIDFromHex(account.ID)
 	if err != nil {
 		return err
@@ -60,7 +63,7 @@ func (d *db) Update(ctx context.Context, account model.Account) error {
 		"$set": updateAccountObject,
 	}
 
-	result, err := d.collection.UpdateOne(ctx, filter, update)
+	result, err := ar.db.UpdateOne(ctx, filter, update)
 	if err != nil {
 		utils.Logger.Info("update one error ", err)
 		return err
@@ -73,8 +76,8 @@ func (d *db) Update(ctx context.Context, account model.Account) error {
 	return nil
 }
 
-func (d *db) Find(ctx context.Context) (a []model.Account, err error) {
-	cur, err := d.collection.Find(ctx, primitive.D{{}})
+func (ar *AccountRepository) Find(ctx context.Context) (acc []model.Account, err error) {
+	cur, err := ar.db.Find(ctx, primitive.D{{}})
 	if err != nil {
 		utils.Logger.Error(err)
 	}
@@ -86,16 +89,16 @@ func (d *db) Find(ctx context.Context) (a []model.Account, err error) {
 		if err != nil {
 			utils.Logger.Error(err)
 		}
-		a = append(a, *data)
+		acc = append(acc, *data)
 
 	}
 	if err := cur.Err(); err != nil {
 		utils.Logger.Error(err)
 	}
-	return a, nil
+	return acc, nil
 }
 
-func (d *db) GetOne(ctx context.Context, account model.Account) (a model.Account, err error) {
+func (ar *AccountRepository) GetOne(ctx context.Context, account model.Account) (acc model.Account, err error) {
 	objectId, err := primitive.ObjectIDFromHex(account.ID)
 	if err != nil {
 		utils.Logger.Info("error convert account id")
@@ -104,20 +107,13 @@ func (d *db) GetOne(ctx context.Context, account model.Account) (a model.Account
 	//select
 	filter := bson.M{"_id": objectId}
 
-	result := d.collection.FindOne(ctx, filter)
+	result := ar.db.FindOne(ctx, filter)
 	if result.Err() != nil {
-		return a, fmt.Errorf("faild to find one account by id %s", account.ID)
+		return acc, fmt.Errorf("faild to find one account by id %s", account.ID)
 	}
 
-	if err = result.Decode(&a); err != nil {
-		return a, fmt.Errorf("faild to decode account by id %s", account.ID)
+	if err = result.Decode(&acc); err != nil {
+		return acc, fmt.Errorf("faild to decode account by id %s", account.ID)
 	}
-	return a, nil
-}
-
-func NewStorage(database *mongo.Database, collection string, logger *zap.SugaredLogger) storage.Storage {
-	return &db{
-		collection: database.Collection(collection),
-		logger:     logger,
-	}
+	return acc, nil
 }

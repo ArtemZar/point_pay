@@ -1,10 +1,12 @@
 package main
 
 import (
-	apiGrpc "accounts/internal/api/grpc"
-	pb "accounts/internal/api/proto"
 	"accounts/internal/config"
-	"accounts/internal/db/mongodb"
+	"accounts/internal/databasedriver"
+	"accounts/internal/repository/mongodb"
+	"accounts/internal/service"
+	"accounts/internal/transport/grpc"
+	pb "accounts/internal/transport/proto"
 	"accounts/internal/utils"
 	"context"
 	"github.com/spf13/viper"
@@ -38,10 +40,14 @@ func main() {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-	monogodbClient, err := mongodb.NewClient(ctx, cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Database, cfg.DB.AuthDB)
-	if err != nil {
-		utils.Logger.Fatal(err)
-	}
+	// init DB client and connect to collection
+	databasedriver.Mongo.ConnectDatabase(&cfg.DB)
+	//accountRepo := databasedriver.Mongo.ConnectCollection(cfg.DB.Database, "accounts")
+	repo := repository.NewAccountRepository(databasedriver.Mongo.Client.Database(cfg.DB.Database), "accounts")
+	//monogodbClient, err := mongodb.NewClient(ctx, cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Database, cfg.DB.AuthDB)
+	//if err != nil {
+	//	utils.Logger.Fatal(err)
+	//}
 
 	go func(ctx context.Context) {
 		listener, err := net.Listen(cfg.SrvConfig.Network, cfg.SrvConfig.Addr)
@@ -49,8 +55,11 @@ func main() {
 			utils.Logger.Fatalf("listener error: %v", err)
 		}
 		s := grpc.NewServer()
-		pb.RegisterAccountsServer(s, &apiGrpc.GRPCServer{
-			MongoDBClient: monogodbClient,
+
+		srv := service.New(repo)
+		as := transport.New(srv)
+		pb.RegisterAccountsServer(s, &transport.AccountsSrv{
+			UseCase: as.UseCase,
 		})
 
 		if err = s.Serve(listener); err != nil {
