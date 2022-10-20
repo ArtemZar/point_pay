@@ -6,8 +6,12 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/bson/bsonrw"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 )
 
 type AccountRepository struct {
@@ -15,8 +19,56 @@ type AccountRepository struct {
 }
 
 func NewAccountRepository(db *mongo.Database, collection string) *AccountRepository {
+
+	// create a custom registry builder
+	rb := bsoncodec.NewRegistryBuilder()
+
+	// register default codecs and encoders/decoders
+	var primitiveCodecs bson.PrimitiveCodecs
+	bsoncodec.DefaultValueEncoders{}.RegisterDefaultEncoders(rb)
+	bsoncodec.DefaultValueDecoders{}.RegisterDefaultDecoders(rb)
+	primitiveCodecs.RegisterPrimitiveCodecs(rb)
+
+	// register custom encoder/decoder
+	myNumberType := reflect.TypeOf(model.MyNumber(0))
+
+	rb.RegisterTypeEncoder(
+		myNumberType,
+		bsoncodec.ValueEncoderFunc(func(_ bsoncodec.EncodeContext, vw bsonrw.ValueWriter, val reflect.Value) error {
+			if !val.IsValid() || val.Type() != myNumberType {
+				return bsoncodec.ValueEncoderError{
+					Name:     "MyNumberEncodeValue",
+					Types:    []reflect.Type{myNumberType},
+					Received: val,
+				}
+			}
+			// IMPORTANT STEP: cast uint64 to int64 so it can be stored in mongo
+			vw.WriteInt64(int64(val.Uint()))
+			return nil
+		}),
+	)
+
+	rb.RegisterTypeDecoder(
+		myNumberType,
+		bsoncodec.ValueDecoderFunc(func(_ bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
+			// IMPORTANT STEP: read sore value in mongo as int64
+			read, err := vr.ReadInt64()
+			if err != nil {
+				return err
+			}
+			// IMPORTANT STEP: cast back to uint64
+			val.SetUint(uint64(read))
+			return nil
+		}),
+	)
+
+	// build the registry
+	reg := rb.Build()
+
 	return &AccountRepository{
-		db: db.Collection(collection),
+		db: db.Collection(collection, &options.CollectionOptions{
+			Registry: reg,
+		}),
 	}
 }
 

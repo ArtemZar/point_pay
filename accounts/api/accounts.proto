@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api;
 
-option go_package = "./proto";
+option go_package = "./transport";
 
 import "google/protobuf/Empty.proto";
 

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.21.5
-// source: accounts.proto
+// source: accounts.transport
 
 package proto
 
@@ -309,12 +309,12 @@ var file_accounts_proto_goTypes = []interface{}{
 	(*emptypb.Empty)(nil),        // 4: google.protobuf.Empty
 }
 var file_accounts_proto_depIdxs = []int32{
-	0, // 0: transport.Accounts.Create:input_type -> transport.NewUserRequest
+	0, // 0: transport.Accounts.CreateAccount:input_type -> transport.NewUserRequest
 	4, // 1: transport.Accounts.GetAccounts:input_type -> google.protobuf.Empty
 	1, // 2: transport.Accounts.GenerateAddress:input_type -> transport.NewWalletRequest
 	2, // 3: transport.Accounts.Deposit:input_type -> transport.ChangeBalanceRequest
 	2, // 4: transport.Accounts.Withdrawal:input_type -> transport.ChangeBalanceRequest
-	3, // 5: transport.Accounts.Create:output_type -> transport.AccountResponse
+	3, // 5: transport.Accounts.CreateAccount:output_type -> transport.AccountResponse
 	3, // 6: transport.Accounts.GetAccounts:output_type -> transport.AccountResponse
 	3, // 7: transport.Accounts.GenerateAddress:output_type -> transport.AccountResponse
 	3, // 8: transport.Accounts.Deposit:output_type -> transport.AccountResponse

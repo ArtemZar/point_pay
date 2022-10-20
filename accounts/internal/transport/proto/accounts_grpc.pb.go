@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.5
-// source: accounts.proto
+// source: accounts.transport
 
 package proto
 
@@ -40,7 +40,7 @@ func NewAccountsClient(cc grpc.ClientConnInterface) AccountsClient {
 
 func (c *accountsClient) CreateAccount(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, "/transport.Accounts/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/transport.Accounts/CreateAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ type UnimplementedAccountsServer struct {
 }
 
 func (UnimplementedAccountsServer) CreateAccount(context.Context, *NewUserRequest) (*AccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
 func (UnimplementedAccountsServer) GetAccounts(*emptypb.Empty, Accounts_GetAccountsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAccounts not implemented")
@@ -160,7 +160,7 @@ func _Accounts_CreateAccount_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/transport.Accounts/Create",
+		FullMethod: "/transport.Accounts/CreateAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountsServer).CreateAccount(ctx, req.(*NewUserRequest))
@@ -251,7 +251,7 @@ var Accounts_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AccountsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
+			MethodName: "CreateAccount",
 			Handler:    _Accounts_CreateAccount_Handler,
 		},
 		{
@@ -274,5 +274,5 @@ var Accounts_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "accounts.proto",
+	Metadata: "accounts.transport",
 }

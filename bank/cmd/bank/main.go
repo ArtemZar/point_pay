@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bank/internal/api/rest"
 	"bank/internal/config"
+	"bank/internal/transport/rest"
 	"bank/internal/utils"
 	"context"
 	"github.com/spf13/viper"
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// init configs
-	viper.AddConfigPath("config")
+	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
 	err := viper.ReadInConfig()
 	if err != nil {

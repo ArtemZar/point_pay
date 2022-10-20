@@ -52,14 +52,14 @@ curl --location --request POST 'localhost:8080/create_account?Email' \
 curl --location --request POST 'localhost:8080/generate_address' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-"id": "631067e026554071bf42dbf7" //example id
+"id": "631067e026554071bf42dbf7"
 }'
 
 + Update balance after deposit  
 curl --location --request POST 'localhost:8080/deposit' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-"id": "630fc63efba343acfb7768b6", //example id
+"id": "630fc63efba343acfb7768b6",
 "amount": "2000.5"
 }'
 
@@ -67,7 +67,7 @@ curl --location --request POST 'localhost:8080/deposit' \
 curl --location --request POST 'localhost:8080/withdrawl' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-"id": "630fc63efba343acfb7768b6", //example id
+"id": "630fc63efba343acfb7768b6",
 "amount": "100.99"
 }'
 

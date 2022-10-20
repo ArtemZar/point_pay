@@ -1,10 +1,10 @@
 package account
 
 import (
-	"bank/internal/api/grpc"
-	pb "bank/internal/api/proto"
 	"bank/internal/config"
 	"bank/internal/ifaces"
+	"bank/internal/transport/grpc"
+	pb "bank/internal/transport/proto"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -29,23 +29,24 @@ func (h *handler) Register(router *gin.Engine) {
 	router.GET("/get_accounts", h.GetAccounts(h.GRPCClient))
 	router.PATCH("/generate_address", h.GenerateAddress(h.GRPCClient))
 	router.PATCH("/deposit", h.Deposit(h.GRPCClient))
-	router.PATCH("/withdrawl", h.Withdrawl(h.GRPCClient))
+	router.PATCH("/withdrawal", h.Withdrawl(h.GRPCClient))
 }
 
 func (h *handler) CreateAccount(g *grpc.GRPCClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestBody := CreateAccountDTO{}
 		c.Bind(&requestBody) //nolint:errcheck // ok
-		resp, _ := g.Client.CreateAccount(context.Background(), &pb.NewUserRequest{
+		resp, err := g.Client.CreateAccount(context.Background(), &pb.NewUserRequest{
 			Email: requestBody.Email,
 		})
-
-		fmt.Println(resp)
-		c.Writer.Write([]byte("hello"))
-
-		//c.JSON(http.StatusOK, gin.H{
-		//	"Account_ID": resp.Id,
-		//} )
+		if err != nil {
+			fmt.Errorf("request CreateAccount error, %v", err)
+			c.Status(501)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"Account_ID": resp.Id,
+		})
 	}
 }
 
@@ -77,10 +78,15 @@ func (h *handler) GenerateAddress(g *grpc.GRPCClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestBody := UpdateAccountDTO{}
 		c.Bind(&requestBody) //nolint:errcheck // ok
-		resp, _ := g.Client.GenerateAddress(context.Background(), &pb.NewWalletRequest{
+		resp, err := g.Client.GenerateAddress(context.Background(), &pb.NewWalletRequest{
 			Id: requestBody.ID,
 		})
-
+		if err != nil {
+			c.JSON(501, gin.H{
+				"Error": err,
+			})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"Account_ID": requestBody.ID,
 			"Wallet_ID":  resp.WalletId,

@@ -1,8 +1,8 @@
 package grpc
 
 import (
-	pb "bank/internal/api/proto"
 	"bank/internal/config"
+	pb "bank/internal/transport/proto"
 	"bank/internal/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

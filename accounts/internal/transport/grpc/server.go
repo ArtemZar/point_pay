@@ -26,7 +26,6 @@ func New(uc useCaseService) *AccountsSrv {
 }
 
 func (as *AccountsSrv) CreateAccount(ctx context.Context, in *pb.NewUserRequest) (*pb.AccountResponse, error) {
-	fmt.Println("server", in.Email)
 	accountID, err := as.UseCase.CreateAccount(ctx, in.Email)
 	if err != nil {
 		return &pb.AccountResponse{Id: ""}, fmt.Errorf("faild create account with error %v", err)
@@ -47,7 +46,7 @@ func (as *AccountsSrv) Deposit(ctx context.Context, in *pb.ChangeBalanceRequest)
 func (as *AccountsSrv) GenerateAddress(ctx context.Context, in *pb.NewWalletRequest) (*pb.AccountResponse, error) {
 	walletAddress, err := as.UseCase.GenerateAddress(ctx, in.Id)
 	if err != nil {
-		return &pb.AccountResponse{Id: in.Id}, fmt.Errorf("faild generate wallet address with error %v", err)
+		return &pb.AccountResponse{Id: in.Id}, err
 	}
 
 	return &pb.AccountResponse{Id: in.Id, WalletId: walletAddress}, nil
@@ -71,7 +70,7 @@ func (as *AccountsSrv) GetAccounts(_ *emptypb.Empty, stream pb.Accounts_GetAccou
 	for _, val := range allAccs {
 		stream.Send(&pb.AccountResponse{
 			Id:       val.ID,
-			WalletId: val.WalletID,
+			WalletId: uint64(val.WalletID),
 			Balance:  val.Balance,
 		})
 

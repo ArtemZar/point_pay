@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// init configs
-	viper.AddConfigPath("config")
+	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -42,12 +42,8 @@ func main() {
 
 	// init DB client and connect to collection
 	databasedriver.Mongo.ConnectDatabase(&cfg.DB)
-	//accountRepo := databasedriver.Mongo.ConnectCollection(cfg.DB.Database, "accounts")
 	repo := repository.NewAccountRepository(databasedriver.Mongo.Client.Database(cfg.DB.Database), "accounts")
-	//monogodbClient, err := mongodb.NewClient(ctx, cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.Database, cfg.DB.AuthDB)
-	//if err != nil {
-	//	utils.Logger.Fatal(err)
-	//}
+	srv := service.New(repo)
 
 	go func(ctx context.Context) {
 		listener, err := net.Listen(cfg.SrvConfig.Network, cfg.SrvConfig.Addr)
@@ -56,11 +52,7 @@ func main() {
 		}
 		s := grpc.NewServer()
 
-		srv := service.New(repo)
-		as := transport.New(srv)
-		pb.RegisterAccountsServer(s, &transport.AccountsSrv{
-			UseCase: as.UseCase,
-		})
+		pb.RegisterAccountsServer(s, transport.New(srv))
 
 		if err = s.Serve(listener); err != nil {
 			utils.Logger.Info(err)

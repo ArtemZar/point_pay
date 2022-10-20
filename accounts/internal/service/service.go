@@ -26,11 +26,11 @@ func New(repo accountRepo) *Service {
 }
 
 func (s *Service) CreateAccount(ctx context.Context, email string) (accID string, err error) {
-	fmt.Printf(email)
 	return s.Storege.Create(ctx, model.Account{
-		ID:      "",
-		Email:   email,
-		Balance: "0",
+		ID:       "",
+		Email:    email,
+		WalletID: 0,
+		Balance:  "0",
 	})
 }
 
@@ -40,19 +40,20 @@ func (s *Service) GenerateAddress(ctx context.Context, accID string) (walletID u
 
 	updateWallet := model.Account{
 		ID:       accID,
-		WalletID: walletAddress,
+		WalletID: model.MyNumber(walletAddress),
 	}
 
 	err = s.Storege.Update(ctx, updateWallet)
 	if err != nil {
-		//TODO return error
-		utils.Logger.Info("update error ", err)
+		utils.Logger.Info("update error: ", err)
+		return 0, err
 	}
 
 	return walletAddress, nil
 }
 
 func (s *Service) Deposit(ctx context.Context, accID, amountOfChange string) (newBalance string, err error) {
+	//TODO проверить что возвращается если элемент не найден, поиск должен быть по валлету и проверка есть ли он
 	sourceAcc, _ := s.Storege.GetOne(ctx, model.Account{ID: accID})
 
 	newBalance = ChangeBalance(sourceAcc.Balance, amountOfChange, "deposit")
@@ -64,7 +65,6 @@ func (s *Service) Deposit(ctx context.Context, accID, amountOfChange string) (ne
 
 	err = s.Storege.Update(ctx, updateBalance)
 	if err != nil {
-		//TODO return error
 		utils.Logger.Info("update error ", err)
 	}
 
