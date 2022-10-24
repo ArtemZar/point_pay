@@ -8,16 +8,16 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type GRPCClient struct {
-	Client pb.AccountsClient
+type Client struct {
+	GRPC pb.AccountsClient
 }
 
-func NewGRPCClient(cfg *config.Config) *GRPCClient {
+func NewGRPCClient(cfg *config.Config) *Client {
 	creds := insecure.NewCredentials()
 	conn, err := grpc.Dial(cfg.GrpcClientConf.Target, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		utils.Logger.Fatalf("GRPC client error: %v", err)
 	}
 
-	return &GRPCClient{Client: pb.NewAccountsClient(conn)}
+	return &Client{GRPC: pb.NewAccountsClient(conn)}
 }

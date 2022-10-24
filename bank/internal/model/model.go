@@ -1,8 +1,8 @@
-package account
+package model
 
 type Account struct {
-	ID       string `json:"id" bson:"_id,omitempty"`
-	Email    string `json:"email" bson:"email"`
+	ID       string `json:"id"`
+	Email    string `json:"email"`
 	WalletID uint64 `json:"wallet_id" bson:"wallet_id,omitempty"`
 	Balance  string `json:"balance" bson:"balance"`
 }

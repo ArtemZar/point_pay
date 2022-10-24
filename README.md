@@ -76,6 +76,3 @@ curl --location --request POST 'localhost:8080/withdrawl' \
 
 ## TODO
 + tests
-+ rest: returns of other statuses besides 200
-+ init configs
-+ refactoring

@@ -1,8 +1,8 @@
 package rest
 
 import (
-	"bank/internal/account"
 	"bank/internal/config"
+	"bank/internal/service"
 	"bank/internal/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +12,7 @@ type Server struct {
 	router *gin.Engine
 }
 
-func NewServer(config *config.Config) *Server {
+func NewHTTPServer(config *config.Config) *Server {
 	return &Server{
 		config: config,
 		router: gin.New(),
@@ -20,7 +20,8 @@ func NewServer(config *config.Config) *Server {
 }
 
 func (s *Server) Start() error {
-	handler := account.NewHandler(s.config)
+	srv := service.NewService(s.config)
+	handler := NewHandlers(srv)
 	handler.Register(s.router)
 
 	utils.Logger.Info("The Server is starting")

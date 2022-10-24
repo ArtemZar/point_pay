@@ -35,7 +35,7 @@ func main() {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func(ctx context.Context, cfg *config.Config) {
-		s := rest.NewServer(cfg)
+		s := rest.NewHTTPServer(cfg)
 		if err := s.Start(); err != nil {
 			utils.Logger.Fatal(err)
 		}

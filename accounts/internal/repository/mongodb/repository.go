@@ -5,13 +5,14 @@ import (
 	"accounts/internal/utils"
 	"context"
 	"fmt"
+	"reflect"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/bson/bsonrw"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
 )
 
 type AccountRepository struct {
@@ -73,6 +74,7 @@ func NewAccountRepository(db *mongo.Database, collection string) *AccountReposit
 }
 
 func (ar *AccountRepository) Create(ctx context.Context, account model.Account) (string, error) {
+
 	result, err := ar.db.InsertOne(ctx, account)
 	if err != nil {
 		return "", err
