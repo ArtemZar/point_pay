@@ -5,9 +5,7 @@ import (
 	"accounts/internal/utils"
 	"context"
 	"encoding/binary"
-	"fmt"
 	"github.com/google/uuid"
-	"strconv"
 )
 
 type accountRepo interface {
@@ -15,6 +13,7 @@ type accountRepo interface {
 	Update(ctx context.Context, account model.Account) error
 	Find(ctx context.Context) (acc []model.Account, err error)
 	GetOne(ctx context.Context, account model.Account) (acc model.Account, err error)
+	UpdateWithTrx(ctx context.Context, accountID, amountOfChange, operationType string) (model.Account, error)
 }
 
 type Service struct {
@@ -27,10 +26,7 @@ func New(repo accountRepo) *Service {
 
 func (s *Service) CreateAccount(ctx context.Context, email string) (accID string, err error) {
 	return s.Storege.Create(ctx, model.Account{
-		ID:       "",
-		Email:    email,
-		WalletID: 0,
-		Balance:  "0",
+		Email: email,
 	})
 }
 
@@ -41,6 +37,7 @@ func (s *Service) GenerateAddress(ctx context.Context, accID string) (walletID u
 	updateWallet := model.Account{
 		ID:       accID,
 		WalletID: model.MyNumber(walletAddress),
+		Balance:  "0",
 	}
 
 	err = s.Storege.Update(ctx, updateWallet)
@@ -52,67 +49,24 @@ func (s *Service) GenerateAddress(ctx context.Context, accID string) (walletID u
 	return walletAddress, nil
 }
 
-func (s *Service) Deposit(ctx context.Context, accID, amountOfChange string) (newBalance string, err error) {
-	//TODO проверить что возвращается если элемент не найден, поиск должен быть по валлету и проверка есть ли он
-	sourceAcc, _ := s.Storege.GetOne(ctx, model.Account{ID: accID})
-
-	newBalance = ChangeBalance(sourceAcc.Balance, amountOfChange, "deposit")
-
-	updateBalance := model.Account{
-		ID:      accID,
-		Balance: newBalance,
-	}
-
-	err = s.Storege.Update(ctx, updateBalance)
+func (s *Service) Deposit(ctx context.Context, accID, amountOfChange string) (string, error) {
+	updatedAccount, err := s.Storege.UpdateWithTrx(ctx, accID, amountOfChange, "deposit")
 	if err != nil {
 		utils.Logger.Info("update error ", err)
+		return "", err
 	}
-
-	return newBalance, nil
+	return updatedAccount.Balance, nil
 }
 
 func (s *Service) Withdrawal(ctx context.Context, accID, amountOfChange string) (newBalance string, err error) {
-	sourceAcc, _ := s.Storege.GetOne(ctx, model.Account{ID: accID})
-
-	a, _ := strconv.ParseFloat(sourceAcc.Balance, 32)
-	b, _ := strconv.ParseFloat(amountOfChange, 32)
-
-	if a < b {
-		return sourceAcc.Balance, fmt.Errorf("not enough balance")
-	}
-
-	newBalance = ChangeBalance(sourceAcc.Balance, amountOfChange, "withdrawal")
-
-	updateBalance := model.Account{
-		ID:      accID,
-		Balance: newBalance,
-	}
-
-	err = s.Storege.Update(ctx, updateBalance)
+	updatedAccount, err := s.Storege.UpdateWithTrx(ctx, accID, amountOfChange, "withdrawal")
 	if err != nil {
-
 		utils.Logger.Info("update error ", err)
+		return "", err
 	}
-
-	return newBalance, nil
+	return updatedAccount.Balance, nil
 }
 
 func (s *Service) GetAccounts() (acc []model.Account, err error) {
 	return s.Storege.Find(context.Background())
-}
-
-func ChangeBalance(oldBalance, amountOfChange string, operation string) string {
-	obToFloat, _ := strconv.ParseFloat(oldBalance, 32)
-	chToFloat, _ := strconv.ParseFloat(amountOfChange, 32)
-	var res float64
-	switch operation {
-	case "withdrawal":
-		res = obToFloat - chToFloat
-
-	case "deposit":
-		res = obToFloat + chToFloat
-
-	}
-
-	return fmt.Sprint(res)
 }

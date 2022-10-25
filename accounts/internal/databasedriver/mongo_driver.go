@@ -38,9 +38,9 @@ func (mongodb *MongoDB) ConnectDatabase(cfg *config.DataBase) {
 	Mongo.Client = client
 }
 
-func (mongodb *MongoDB) ConnectCollection(databaseName, collectionName string) *mongo.Collection {
-	return mongodb.Client.Database(databaseName).Collection(collectionName)
-}
+//func (mongodb *MongoDB) ConnectCollection(databaseName, collectionName string) *mongo.Collection {
+//	return mongodb.Client.Database(databaseName).Collection(collectionName)
+//}
 
 func getConnectionString(cfg *config.DataBase) string {
 

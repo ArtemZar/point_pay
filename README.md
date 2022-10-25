@@ -21,12 +21,16 @@
 - Вызывает соответствующие сервисы rpc на микро-сервисе Accounts
 
 ## Use MongoDB via Docker
+Most tools for installing and running MongoDB start a standalone server as opposed to a replica set. If you try to start a session on a standalone server, you'll get error.
+In order to use transactions, you need a MongoDB replica set.
+Solution for local development using docker:
 
-+ get image  
-docker pull mongo
 
-+ run container  
-docker run -d --name mongoDB -p 27017:27017 mongo:latest
++ build Dockerfile  
+docker build ./ -t mongodb:4.7-replset
+
++ run this created image  
+docker run --name mongodb-replset -p 27017:27017 -d mongodb:4.7-replset
 
 + check container  
 docker ps

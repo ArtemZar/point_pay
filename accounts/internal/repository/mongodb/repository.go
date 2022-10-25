@@ -5,7 +5,11 @@ import (
 	"accounts/internal/utils"
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+	"log"
 	"reflect"
+	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
@@ -16,7 +20,7 @@ import (
 )
 
 type AccountRepository struct {
-	db *mongo.Collection
+	accountCollection *mongo.Collection
 }
 
 func NewAccountRepository(db *mongo.Database, collection string) *AccountRepository {
@@ -67,15 +71,14 @@ func NewAccountRepository(db *mongo.Database, collection string) *AccountReposit
 	reg := rb.Build()
 
 	return &AccountRepository{
-		db: db.Collection(collection, &options.CollectionOptions{
+		accountCollection: db.Collection(collection, &options.CollectionOptions{
 			Registry: reg,
 		}),
 	}
 }
 
 func (ar *AccountRepository) Create(ctx context.Context, account model.Account) (string, error) {
-
-	result, err := ar.db.InsertOne(ctx, account)
+	result, err := ar.accountCollection.InsertOne(ctx, account)
 	if err != nil {
 		return "", err
 	}
@@ -94,7 +97,6 @@ func (ar *AccountRepository) Update(ctx context.Context, account model.Account) 
 
 	//select
 	filter := bson.M{"_id": objectId}
-	//filter := bson.M{"email": account.Email}
 
 	accoutnBytes, err := bson.Marshal(account)
 	if err != nil {
@@ -117,7 +119,7 @@ func (ar *AccountRepository) Update(ctx context.Context, account model.Account) 
 		"$set": updateAccountObject,
 	}
 
-	result, err := ar.db.UpdateOne(ctx, filter, update)
+	result, err := ar.accountCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		utils.Logger.Info("update one error ", err)
 		return err
@@ -131,7 +133,7 @@ func (ar *AccountRepository) Update(ctx context.Context, account model.Account) 
 }
 
 func (ar *AccountRepository) Find(ctx context.Context) (acc []model.Account, err error) {
-	cur, err := ar.db.Find(ctx, primitive.D{{}})
+	cur, err := ar.accountCollection.Find(ctx, primitive.D{{}})
 	if err != nil {
 		utils.Logger.Error(err)
 	}
@@ -161,8 +163,9 @@ func (ar *AccountRepository) GetOne(ctx context.Context, account model.Account) 
 	//select
 	filter := bson.M{"_id": objectId}
 
-	result := ar.db.FindOne(ctx, filter)
+	result := ar.accountCollection.FindOne(ctx, filter)
 	if result.Err() != nil {
+		utils.Logger.Info("FindOne from GetOne error")
 		return acc, fmt.Errorf("faild to find one account by id %s", account.ID)
 	}
 
@@ -170,4 +173,131 @@ func (ar *AccountRepository) GetOne(ctx context.Context, account model.Account) 
 		return acc, fmt.Errorf("faild to decode account by id %s", account.ID)
 	}
 	return acc, nil
+}
+
+func (ar *AccountRepository) UpdateWithTrx(ctx context.Context, accountID, amountOfChange, operationType string) (model.Account, error) {
+	var updatedAccount = &model.Account{}
+
+	err := ar.accountCollection.Database().Client().UseSession(ctx, func(sc mongo.SessionContext) error {
+		err := sc.StartTransaction(options.Transaction().
+			SetReadConcern(readconcern.Snapshot()).
+			SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		objectId, err := primitive.ObjectIDFromHex(accountID)
+		if err != nil {
+			return err
+		}
+
+		//select
+		filter := bson.M{"_id": objectId}
+
+		var acc model.Account
+		err = ar.accountCollection.FindOne(sc, filter).Decode(&acc)
+		if err == mongo.ErrNoDocuments {
+			if err := sc.AbortTransaction(sc); err != nil {
+				utils.Logger.Info("aborting transaction error: ", err)
+			}
+			utils.Logger.Info("caught exception during transaction, aborting.", err)
+			return fmt.Errorf("faild to decode account by id %s", accountID)
+		}
+
+		newBalance, err := ChangeBalance(acc.Balance, amountOfChange, operationType)
+		if err != nil {
+			if err := sc.AbortTransaction(sc); err != nil {
+				utils.Logger.Info("aborting transaction error: ", err)
+			}
+			utils.Logger.Info("caught exception during transaction, aborting.", err)
+			return fmt.Errorf("faild to decode account by id %s", accountID)
+		}
+
+		updatedAccount = &model.Account{
+			ID:       acc.ID,
+			Email:    acc.Email,
+			WalletID: acc.WalletID,
+			Balance:  newBalance,
+		}
+
+		accoutnBytes, err := bson.Marshal(updatedAccount)
+		if err != nil {
+			utils.Logger.Info("bson marhal error ", err)
+			return err
+		}
+
+		var updateAccountObject bson.M
+		err = bson.Unmarshal(accoutnBytes, &updateAccountObject)
+		if err != nil {
+			utils.Logger.Info("bson unmarhal error ", err)
+			return err
+		}
+
+		delete(updateAccountObject, "_id")
+
+		//update
+		update := bson.M{
+			"$set": updateAccountObject,
+		}
+
+		result, _ := ar.accountCollection.UpdateOne(sc, filter, update)
+		if err != nil {
+			if err := sc.AbortTransaction(sc); err != nil {
+				utils.Logger.Info("aborting transaction error: ", err)
+			}
+			utils.Logger.Info("caught exception during transaction, aborting.", err)
+			return err
+		}
+
+		if result.MatchedCount == 0 {
+			return fmt.Errorf("not found")
+		}
+
+		// конец
+
+		for {
+			err = sc.CommitTransaction(sc)
+			switch e := err.(type) {
+			case nil:
+				return nil
+			case mongo.CommandError:
+				if e.HasErrorLabel("UnknownTransactionCommitResult") {
+					log.Println("UnknownTransactionCommitResult, retrying commit operation...")
+					continue
+				}
+				log.Println("Error during commit...")
+				return e
+			default:
+				log.Println("Error during commit...")
+				return e
+			}
+		}
+	})
+	if err != nil {
+		return *updatedAccount, err
+	}
+	return *updatedAccount, nil
+}
+
+func ChangeBalance(oldBalance, amountOfChange string, operation string) (string, error) {
+	obToFloat, _ := strconv.ParseFloat(oldBalance, 32)
+	chToFloat, _ := strconv.ParseFloat(amountOfChange, 32)
+
+	if operation == "withdrawal" && obToFloat < chToFloat {
+		return oldBalance, fmt.Errorf("not enough balance")
+	}
+
+	var res float64
+	switch operation {
+	case "withdrawal":
+		res = obToFloat - chToFloat
+
+	case "deposit":
+		res = obToFloat + chToFloat
+
+	}
+
+	return fmt.Sprint(res), nil
 }

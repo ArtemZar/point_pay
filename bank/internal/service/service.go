@@ -51,7 +51,7 @@ func (s Service) Deposit(requestBody model.UpdateAccountDTO) (*pb.AccountRespons
 }
 
 func (s Service) Withdrawal(requestBody model.UpdateAccountDTO) (*pb.AccountResponse, error) {
-	response, err := s.Client.GRPC.Deposit(context.Background(), &pb.ChangeBalanceRequest{
+	response, err := s.Client.GRPC.Withdrawal(context.Background(), &pb.ChangeBalanceRequest{
 		Id:     requestBody.ID,
 		Change: requestBody.Amount,
 	})
